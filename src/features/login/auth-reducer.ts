@@ -1,5 +1,11 @@
 import { Dispatch } from 'redux'
-import { SetAppErrorActionType, setAppStatusAC, SetAppStatusActionType } from '../../app/app-reducer'
+import {
+    SetAppErrorActionType,
+    setAppStatusAC,
+    SetAppStatusActionType,
+    setInitializedAC,
+    SetInitializedActionType
+} from '../../app/app-reducer'
 import {LoginType} from "./Login";
 import {authAPI} from "../../api/todolists-api";
 import {handleServerAppError, handleServerNetworkError} from "../../utils/error-utils";
@@ -41,5 +47,45 @@ export const loginTC = (data: LoginType) => async (dispatch: Dispatch<ActionsTyp
     }
 }
 
+export const meTC = () => async (dispatch: Dispatch<ActionsType>) => {
+    dispatch(setAppStatusAC('loading'))
+    try {
+        const result = await authAPI.me()
+        if(result.data.resultCode === 0) {
+            dispatch(setIsLoggedInAC(true))
+            dispatch(setAppStatusAC('succeeded'))
+            console.log('ok')
+        } else {
+            handleServerAppError(result.data, dispatch)
+        }
+    } catch (e) {
+        const error = (e as {message: string})
+        handleServerNetworkError(error, dispatch)
+    }
+    finally {
+        dispatch(setInitializedAC(true))
+    }
+}
+
+export const logOutTC = () => async (dispatch: Dispatch<ActionsType>) => {
+    dispatch(setAppStatusAC('loading'))
+    try {
+        const result = await authAPI.logOut()
+        if(result.data.resultCode === 0) {
+            dispatch(setIsLoggedInAC(false))
+            dispatch(setAppStatusAC('succeeded'))
+            console.log('ok')
+        } else {
+            handleServerAppError(result.data, dispatch)
+        }
+    } catch (e) {
+        const error = (e as {message: string})
+        handleServerNetworkError(error, dispatch)
+    }
+}
+
 // types
-type ActionsType = ReturnType<typeof setIsLoggedInAC> | SetAppStatusActionType | SetAppErrorActionType
+type ActionsType = ReturnType<typeof setIsLoggedInAC>
+    | SetAppStatusActionType
+    | SetAppErrorActionType
+    | SetInitializedActionType
