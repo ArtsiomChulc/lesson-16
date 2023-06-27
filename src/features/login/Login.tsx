@@ -8,6 +8,9 @@ import FormLabel from '@mui/material/FormLabel';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import {useFormik} from "formik";
+import {loginTC} from "./auth-reducer";
+import {useAppDispatch, useAppSelector} from "../../app/store";
+import {Navigate} from "react-router-dom";
 
 type FormikErrorType = {
     email?: string
@@ -21,6 +24,9 @@ export type LoginType = {
 }
 
 export const Login = () => {
+
+    const dispatch = useAppDispatch()
+    const isLoggedIn = useAppSelector(state => state.auth.isLoggedIn)
 
     const formik = useFormik({
         initialValues: {
@@ -37,18 +43,23 @@ export const Login = () => {
             }
             if (!values.password) {
                 errors.password = 'Required'
-            } else if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{3,8}$/i.test(values.password)) {
+            } else if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{3,10}$/i.test(values.password)) {
                 errors.password = 'Invalid password'
             }
             return errors
         },
         onSubmit: values => {
-            alert(JSON.stringify(values));
+            dispatch(loginTC(values))
+            // alert(JSON.stringify(values, null, 2));
             formik.resetForm()
         },
     })
 
-    console.log(formik.values)
+
+    if (isLoggedIn) {
+       return <Navigate to={'/'} />
+    }
+
     return <Grid container justifyContent={'center'}>
         <Grid item justifyContent={'center'}>
             <form onSubmit={formik.handleSubmit}>
